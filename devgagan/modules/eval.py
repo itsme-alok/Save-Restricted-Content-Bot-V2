@@ -1,5 +1,3 @@
-#devggn
-
 import os, re, subprocess, sys, traceback
 from inspect import getfullargspec
 from io import StringIO
@@ -9,7 +7,13 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from config import OWNER_ID
 from devgagan import app
 
+# Whitelist of allowed user IDs
+ALLOWED_USERS = [1387249506]  # Replace with actual Telegram user IDs
 
+
+def is_whitelisted(user_id):
+    """Check if the user is in the whitelist."""
+    return user_id in ALLOWED_USERS
 
 
 async def aexec(code, client, message):
@@ -26,15 +30,9 @@ async def edit_or_reply(msg, **kwargs):
     await func(**{k: v for k, v in kwargs.items() if k in spec})
 
 
-@app.on_edited_message(
-    filters.command(["eval", "x"])
-    & filters.user(OWNER_ID)
-    & ~filters.forwarded
-    & ~filters.via_bot
-)
 @app.on_message(
     filters.command(["eval", "x"])
-    & filters.user(OWNER_ID)
+    & filters.create(lambda _, __, message: is_whitelisted(message.from_user.id))
     & ~filters.forwarded
     & ~filters.via_bot
 )
@@ -136,17 +134,9 @@ async def forceclose_command(_, CallbackQuery):
         return
 
 
-
-
-@app.on_edited_message(
-    filters.command("sh")
-    & filters.user(OWNER_ID)
-    & ~filters.forwarded
-    & ~filters.via_bot
-)
 @app.on_message(
     filters.command("sh")
-    & filters.user(OWNER_ID)
+    & filters.create(lambda _, __, message: is_whitelisted(message.from_user.id))
     & ~filters.forwarded
     & ~filters.via_bot
 )
@@ -209,6 +199,3 @@ async def shellrunner(_, message):
     else:
         await edit_or_reply(message, text="<b>OUTPUT :</b>\n<code>None</code>")
     await message.stop_propagation()
-
-
-  
